@@ -7,6 +7,7 @@ import (
 
 	"ollama-tiny-chat/server/internal/api"
 	"ollama-tiny-chat/server/internal/database"
+	"ollama-tiny-chat/server/internal/ws"
 
 	"github.com/gorilla/mux"
 )
@@ -19,8 +20,9 @@ func main() {
 	r := mux.NewRouter()
 
 	apiRouter := r.PathPrefix("/api").Subrouter()
-
 	api.RegisterRoutes(apiRouter)
+
+	r.HandleFunc("/ws", ws.HandleWebSocket)
 
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
 

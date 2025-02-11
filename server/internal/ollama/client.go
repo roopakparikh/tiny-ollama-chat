@@ -1,6 +1,7 @@
 package ollama
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -9,11 +10,23 @@ import (
 const (
 	defaultBaseUrl = "http://localhost:11434"
 	modelListPath  = "/api/tags"
+	generatePath   = "/api/generate"
 )
 
 type Client struct {
 	baseURL    string
 	httpClient *http.Client
+}
+
+type GenerateRequest struct {
+	Model  string `json:"model"`
+	Prompt string `json:"prompt"`
+	Stream bool   `json:"stream"`
+}
+
+type GenerateResponse struct {
+	Response string `json:"response"`
+	Done     bool   `json:"done"`
 }
 
 type ModelDetails struct {
@@ -57,4 +70,28 @@ func (c *Client) ListModels() ([]ModelInfo, error) {
 	}
 
 	return response.Models, nil
+}
+
+func (c *Client) GenerateStream(model, prompt string) (*http.Response, error) {
+	reqBody := GenerateRequest{
+		Model:  model,
+		Prompt: prompt,
+		Stream: true,
+	}
+
+	jsonData, err := json.Marshal(reqBody)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal request: %w", err)
+	}
+
+	resp, err := c.httpClient.Post(c.baseURL+generatePath, "application/json",
+		bytes.NewBuffer(jsonData))
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to send request: %w", err)
+	}
+
+	return resp, nil
+
 }
