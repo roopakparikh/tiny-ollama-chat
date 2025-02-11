@@ -58,7 +58,9 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
                 <SheetDescription className="sr-only">
                   View your chat history and start new conversations
                 </SheetDescription>
-                <Sidebar />
+                <div className="flex-1 overflow-hidden">
+                  <Sidebar />
+                </div>
               </div>
             </SheetContent>
           </Sheet>
