@@ -24,7 +24,7 @@ type Client struct {
 }
 
 type WSRequest struct {
-	Type    string `json:"type"`
+	Type    string `json:"type"` // "message", "start_conversation", "resume_conversation"
 	Message string `json:"message"`
 	Model   string `json:"model"`
 	ConvoID string `json:"convo_id,omitempty"`
@@ -66,6 +66,9 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 		case "start_conversation":
 			log.Printf("Starting new conversation with model: %s", req.Model)
 			handleNewConversation(client, req)
+		case "resume_conversation":
+			log.Printf("Resuming conversation: %s", req.ConvoID)
+			handleResumeConversation(client, req)
 		case "message":
 			log.Printf("Handling message for conversation: %s", client.currentConvoID)
 			handleMessage(client, req)
@@ -97,6 +100,31 @@ func handleNewConversation(client *Client, req WSRequest) {
 	})
 
 	generateResponse(client, req, true)
+}
+
+func handleResumeConversation(client *Client, req WSRequest) {
+	// Verify conversation exists
+	convo, err := database.GetConversationByID(req.ConvoID)
+	if err != nil {
+		log.Printf("Error fetching conversation: %v", err)
+		sendError(client, "Failed to resume conversation")
+		return
+	}
+	if convo == nil {
+		log.Printf("Conversation not found: %s", req.ConvoID)
+		sendError(client, "Conversation not found")
+		return
+	}
+
+	// Set the conversation ID
+	client.currentConvoID = req.ConvoID
+	log.Printf("Resumed conversation: %s", req.ConvoID)
+
+	// Send success response
+	client.conn.WriteJSON(WSResponse{
+		Type:    "conversation_resumed",
+		Content: req.ConvoID,
+	})
 }
 
 func handleMessage(client *Client, req WSRequest) {
