@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 const (
@@ -16,6 +17,11 @@ const (
 type Client struct {
 	baseURL    string
 	httpClient *http.Client
+}
+
+type Message struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
 }
 
 type GenerateRequest struct {
@@ -72,26 +78,51 @@ func (c *Client) ListModels() ([]ModelInfo, error) {
 	return response.Models, nil
 }
 
-func (c *Client) GenerateStream(model, prompt string) (*http.Response, error) {
+func (c *Client) GenerateStream(model string, messages []Message) (*http.Response, error) {
+
+	var prompt strings.Builder
+
+	for _, msg := range messages {
+		prompt.WriteString(fmt.Sprintf("%s: %s\n", msg.Role, msg.Content))
+	}
+
 	reqBody := GenerateRequest{
 		Model:  model,
-		Prompt: prompt,
+		Prompt: prompt.String(),
 		Stream: true,
 	}
 
 	jsonData, err := json.Marshal(reqBody)
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
 	resp, err := c.httpClient.Post(c.baseURL+generatePath, "application/json",
 		bytes.NewBuffer(jsonData))
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to send request: %w", err)
 	}
 
 	return resp, nil
-
 }
+
+// func (c *Client) GenerateStreamWithHistory(model string, messages []Message) (*http.Response, error) {
+// 	reqBody := GenerateRequest{
+// 		Model:    model,
+// 		Messages: messages,
+// 		Stream:   true,
+// 	}
+
+// 	jsonData, err := json.Marshal(reqBody)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("failed to marshal request: %w", err)
+// 	}
+
+// 	resp, err := c.httpClient.Post(c.baseURL+generatePath, "application/json",
+// 		bytes.NewBuffer(jsonData))
+// 	if err != nil {
+// 		return nil, fmt.Errorf("failed to send request: %w", err)
+// 	}
+
+// 	return resp, nil
+// }
