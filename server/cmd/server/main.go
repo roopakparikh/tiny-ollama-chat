@@ -3,24 +3,29 @@ package main
 import (
 	"fmt"
 	"log"
-	"ollama-tiny-chat/server/internal/ollama"
+	"net/http"
+
+	"ollama-tiny-chat/server/internal/api"
+	"ollama-tiny-chat/server/internal/database"
+
+	"github.com/gorilla/mux"
 )
 
 func main() {
-	client := ollama.NewClient("")
-
-	models, err := client.ListModels()
-
-	if err != nil {
-		log.Fatal("Error getting models:", err)
+	if err := database.InitDB(); err != nil {
+		log.Fatal("Failed to initialize database:", err)
 	}
 
-	fmt.Println("Available Models:")
-	for _, model := range models {
-		fmt.Printf("- %s (Model: %s, Size: %s)\n",
-			model.Name,
-			model.Model,
-			model.Details.ParameterSize,
-		)
+	r := mux.NewRouter()
+
+	apiRouter := r.PathPrefix("/api").Subrouter()
+
+	api.RegisterRoutes(apiRouter)
+
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
+
+	fmt.Println("Server starting on :8080...")
+	if err := http.ListenAndServe(":8080", r); err != nil {
+		log.Fatal("Server failed to start:", err)
 	}
 }
