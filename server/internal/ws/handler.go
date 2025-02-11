@@ -8,6 +8,7 @@ import (
 	"ollama-tiny-chat/server/internal/database"
 	"ollama-tiny-chat/server/internal/ollama"
 	"strings"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -187,44 +188,56 @@ func generateResponse(client *Client, req WSRequest, isFirstMessage bool) {
 	scanner := bufio.NewScanner(resp.Body)
 	var fullResponse strings.Builder
 	var thinking strings.Builder
+	var rawContent strings.Builder
 	isThinking := false
+	var thinkStartTime time.Time
+	var thinkingDuration float64
 
 	log.Println("Starting to process Ollama stream")
 	for scanner.Scan() {
-		rawResponse := scanner.Text()
-		log.Printf("Raw response from Ollama: %s", rawResponse)
-
 		var genResp ollama.GenerateResponse
 		if err := json.Unmarshal(scanner.Bytes(), &genResp); err != nil {
 			log.Printf("Error unmarshaling response chunk: %v", err)
 			continue
 		}
 
-		log.Printf("Parsed response - Done: %v, Response: %s", genResp.Done, genResp.Response)
+		rawContent.WriteString(genResp.Response)
 
 		// Process the response chunk first
 		if strings.Contains(genResp.Response, "<think>") {
 			log.Println("Entering thinking mode")
 			isThinking = true
+			thinkStartTime = time.Now()
+
+			// Notify client that thinking is starting
+			client.conn.WriteJSON(WSResponse{
+				Type:    "thinking_start",
+				Content: "",
+			})
+
 			continue
 		}
 		if strings.Contains(genResp.Response, "</think>") {
-			log.Println("Exiting thinking mode, sending thinking content")
+			log.Println("Exiting thinking mode")
 			isThinking = false
+			thinkingDuration = time.Since(thinkStartTime).Seconds()
+
 			client.conn.WriteJSON(WSResponse{
-				Type:    "thinking",
+				Type:    "thinking_end",
 				Content: thinking.String(),
 			})
-			thinking.Reset()
 			continue
 		}
 
 		if isThinking {
 			thinking.WriteString(genResp.Response)
-			log.Printf("Added thinking content: %s", genResp.Response)
-		} else if genResp.Response != "" { // Only process non-empty responses
+			// Stream thinking content too
+			client.conn.WriteJSON(WSResponse{
+				Type:    "thinking_chunk",
+				Content: genResp.Response,
+			})
+		} else {
 			fullResponse.WriteString(genResp.Response)
-			log.Printf("Added response chunk: %s", genResp.Response)
 			client.conn.WriteJSON(WSResponse{
 				Type:    "response_chunk",
 				Content: genResp.Response,
@@ -243,14 +256,13 @@ func generateResponse(client *Client, req WSRequest, isFirstMessage bool) {
 	log.Println("Stream complete, saving response")
 	finalResponse := fullResponse.String()
 	if finalResponse != "" {
-		log.Printf("Final response length: %d characters", len(finalResponse))
 		err := database.AddMessageWithThinking(
 			client.currentConvoID,
 			"assistant",
 			finalResponse,
-			finalResponse,
-			pointer(thinking.String()),
-			nil,
+			rawContent.String(),
+			pointerString(thinking.String()),
+			&thinkingDuration,
 		)
 		if err != nil {
 			log.Printf("Error saving response: %v", err)
@@ -269,7 +281,7 @@ func generateResponse(client *Client, req WSRequest, isFirstMessage bool) {
 	})
 }
 
-func pointer(s string) *string {
+func pointerString(s string) *string {
 	if s == "" {
 		return nil
 	}
