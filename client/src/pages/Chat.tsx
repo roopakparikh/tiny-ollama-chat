@@ -13,6 +13,7 @@ import { SendHorizontal } from "lucide-react";
 import { Message } from "@/components/chat/Message";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useConversationStore } from "@/stores/useConversationStore";
+import { wsService } from "@/services/websocket";
 
 export const Chat = () => {
   const { id } = useParams();
@@ -58,15 +59,23 @@ export const Chat = () => {
 
   // Load conversation if needed
   useEffect(() => {
-    if (id) {
-      fetchConversationById(id);
-      resumeConversation(id);
-      if (conversation) {
-        setSelectedModel(conversation.Model);
+    const setupChat = async () => {
+      if (id) {
+        await fetchConversationById(id);
+
+        const waitForWS = () => {
+          if (wsService.isConnected()) {
+            resumeConversation(id);
+          } else {
+            setTimeout(waitForWS, 100);
+          }
+        };
+        waitForWS();
+      } else {
+        setInput("");
       }
-    } else {
-      setInput("");
-    }
+    };
+    setupChat();
   }, [id, fetchConversationById, resumeConversation]);
 
   useEffect(() => {
