@@ -25,3 +25,14 @@ export type Model = {
     parameter_size: string;
   };
 };
+
+export type CurrentMessage = {
+  role: "assistant";
+  content: string;
+  thinking: {
+    content: string;
+    isThinking: boolean;
+    timeStart: number;
+    timeEnd: number | null;
+  } | null;
+};

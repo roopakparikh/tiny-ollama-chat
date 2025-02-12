@@ -14,6 +14,7 @@ import { Message } from "@/components/chat/Message";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useConversationStore } from "@/stores/useConversationStore";
 import { wsService } from "@/services/websocket";
+import { StreamingMessage } from "@/components/chat/StreamingMessage";
 
 export const Chat = () => {
   const { id } = useParams();
@@ -128,37 +129,7 @@ export const Chat = () => {
               ))}
               {/* Current Streaming Message */}
               {currentMessage && (
-                <div className="space-y-2">
-                  {currentMessage.thinking?.isThinking && (
-                    <details className="text-sm text-muted-foreground">
-                      <summary>
-                        Thinking...{" "}
-                        {(
-                          (Date.now() - currentMessage.thinking.timeStart) /
-                          1000
-                        ).toFixed(2)}
-                        s
-                      </summary>
-                      <p className="mt-2 whitespace-pre-wrap">
-                        {currentMessage.thinking.content}
-                      </p>
-                    </details>
-                  )}
-                  {currentMessage.content && (
-                    <Message
-                      message={{
-                        ID: "current",
-                        Role: "assistant",
-                        Content: currentMessage.content,
-                        CreatedAt: new Date().toISOString(),
-                        ConversationID: id || "",
-                        RawContent: currentMessage.content,
-                        Thinking: null,
-                        ThinkingTime: null,
-                      }}
-                    />
-                  )}
-                </div>
+                <StreamingMessage currentMessage={currentMessage} />
               )}
             </>
           ) : (

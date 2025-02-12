@@ -1,18 +1,8 @@
 // src/stores/useConversationStore.ts
 import { create } from "zustand";
-import type { Conversation, Message, Model } from "@/lib/types";
+import type { Conversation, CurrentMessage, Message, Model } from "@/lib/types";
 import { api } from "@/services/api";
 import { wsService } from "@/services/websocket";
-
-interface CurrentMessage {
-  role: "assistant";
-  content: string;
-  thinking: {
-    content: string;
-    isThinking: boolean;
-    timeStart: number;
-  } | null;
-}
 
 interface ConversationStore {
   // State
@@ -65,7 +55,12 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
       currentMessage: {
         role: "assistant",
         content: (state.currentMessage?.content || "") + chunk,
-        thinking: state.currentMessage?.thinking || null,
+        thinking: state.currentMessage?.thinking
+          ? {
+              ...state.currentMessage.thinking,
+              timeEnd: state.currentMessage.thinking.timeEnd || Date.now(),
+            }
+          : null,
       },
     })),
 
@@ -100,12 +95,21 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
         content: state.currentMessage?.content || "",
         thinking: thinking
           ? {
-              content: content || state.currentMessage?.thinking?.content || "",
+              content: content
+                ? (state.currentMessage?.thinking?.content || "") + content
+                : state.currentMessage?.thinking?.content || "",
               isThinking: thinking,
               timeStart:
                 state.currentMessage?.thinking?.timeStart || Date.now(),
+              timeEnd: null, // Reset timeEnd when thinking is active
             }
-          : state.currentMessage?.thinking || null,
+          : state.currentMessage?.thinking
+          ? {
+              ...state.currentMessage.thinking,
+              isThinking: false,
+              timeEnd: Date.now(), // Set timeEnd when thinking stops
+            }
+          : null,
       },
     })),
 
@@ -114,7 +118,9 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
       if (!state.currentMessage) return state;
 
       const thinkingTime = state.currentMessage.thinking
-        ? (Date.now() - state.currentMessage.thinking.timeStart) / 1000
+        ? (state.currentMessage.thinking.timeEnd! -
+            state.currentMessage.thinking.timeStart) /
+          1000
         : null;
 
       const newMessage = {
@@ -130,7 +136,12 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
 
       const conversations = state.conversations.map((conv) =>
         conv.ID === conversationId
-          ? { ...conv, Messages: [...conv.Messages, newMessage] }
+          ? {
+              ...conv,
+              Messages: Array.isArray(conv.Messages)
+                ? [...conv.Messages, newMessage]
+                : [newMessage],
+            }
           : conv
       );
 
@@ -142,7 +153,14 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
 
   addConversation: (newConversation: Conversation) =>
     set((state) => ({
-      conversations: [newConversation, ...state.conversations],
+      conversations: [
+        {
+          ...newConversation,
+          Messages: [], // Ensure Messages is initialized as empty array
+          Model: state.selectedModel || newConversation.Model,
+        },
+        ...state.conversations,
+      ],
     })),
 
   initializeApp: async () => {
