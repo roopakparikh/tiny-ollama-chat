@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useConversationStore } from "@/stores/useConversationStore";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useUIStore } from "@/stores/useUIStore";
-import { api } from "@/services/api";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -26,7 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export const Sidebar = () => {
-  const { conversations, setConversations, deleteConversation } =
+  const { conversations, deleteConversation, isLoading, error } =
     useConversationStore();
   const { isSidebarOpen } = useUIStore();
   const navigate = useNavigate();
@@ -34,38 +33,13 @@ export const Sidebar = () => {
   const { toast } = useToast();
   const currentId = location.pathname.split("/").pop();
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  useEffect(() => {
-    const loadConversations = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const data = await api.getConversations();
-        setConversations(data);
-      } catch (err) {
-        setError("Failed to load conversations");
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to load conversations. Please try again.",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadConversations();
-  }, [setConversations, toast]);
 
   const handleDelete = async (id: string) => {
     try {
       setIsDeleting(true);
-      await api.deleteConversation(id);
-      deleteConversation(id);
+      await deleteConversation(id); // Just use store action, it handles the API call
       if (currentId === id) {
         navigate("/");
       }
@@ -151,7 +125,6 @@ export const Sidebar = () => {
                     "relative"
                   )}
                   onClick={() => navigate(`/chat/${conversation.ID}`)}
-                  
                 >
                   <div
                     className={cn(

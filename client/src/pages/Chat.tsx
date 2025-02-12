@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
   Select,
@@ -11,40 +11,56 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SendHorizontal } from "lucide-react";
 import { Message } from "@/components/chat/Message";
-import { api } from "@/services/api";
-import type { Model, Conversation } from "@/lib/types";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useConversationStore } from "@/stores/useConversationStore";
 
 export const Chat = () => {
   const { id } = useParams();
-  const [selectedModel, setSelectedModel] = useState<string>("");
-  const [models, setModels] = useState<Model[]>([]);
   const [input, setInput] = useState("");
-  const [conversation, setConversation] = useState<Conversation | null>(null);
   const isNewChat = !id;
 
-  // Load available models for new chat
-  useEffect(() => {
-    if (isNewChat) {
-      api.getModels().then(setModels).catch(console.error);
-    }
-  }, [isNewChat]);
+  // Get from store
+  const models = useConversationStore((state) => state.models);
+  const conversations = useConversationStore((state) => state.conversations);
+  const fetchModels = useConversationStore((state) => state.fetchModels);
+  const fetchConversationById = useConversationStore(
+    (state) => state.fetchConversationById
+  );
 
-  // Load existing conversation
+  // Local model selection for new chat
+  const [selectedModel, setSelectedModel] = useState<string>("");
+
+  // Current conversation from store
+  const conversation = useMemo(() => {
+    if (!id) return null;
+    return conversations.find((c) => c.ID === id);
+  }, [id, conversations]);
+
+  // Load models if new chat
+  useEffect(() => {
+    if (isNewChat && models.length === 0) {
+      fetchModels();
+    }
+  }, [isNewChat, models.length, fetchModels]);
+
+  // Load conversation if needed
   useEffect(() => {
     if (id) {
-      api
-        .getConversation(id)
-        .then((conv) => {
-          setConversation(conv);
-          setSelectedModel(conv.Model);
-        })
-        .catch(console.error);
+      fetchConversationById(id);
+      // If conversation exists, set its model
+      if (conversation) {
+        setSelectedModel(conversation.Model);
+      }
     } else {
-      setConversation(null);
       setInput("");
     }
-  }, [id]);
+  }, [id, fetchConversationById]);
+
+  useEffect(() => {
+    if (conversation) {
+      setSelectedModel(conversation.Model);
+    }
+  }, [conversation]);
 
   return (
     <div className="flex flex-col h-full">
@@ -69,9 +85,15 @@ export const Chat = () => {
       {/* Chat Messages Area */}
       <ScrollArea className="flex-1 p-4">
         <div className="max-w-3xl mx-auto">
-          {conversation?.Messages.map((message) => (
-            <Message key={message.ID} message={message} />
-          ))}
+          {conversation && conversation.Messages ? (
+            conversation.Messages.map((message) => (
+              <Message key={message.ID} message={message} />
+            ))
+          ) : (
+            <div className="flex items-center justify-center h-full text-muted-foreground">
+              {id ? "Loading messages..." : "Start a new conversation"}
+            </div>
+          )}
         </div>
       </ScrollArea>
 
