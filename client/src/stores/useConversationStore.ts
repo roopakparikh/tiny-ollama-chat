@@ -2,18 +2,39 @@
 import { create } from "zustand";
 import type { Conversation, Message, Model } from "@/lib/types";
 import { api } from "@/services/api";
+import { wsService } from "@/services/websocket";
+
+interface CurrentMessage {
+  role: "assistant";
+  content: string;
+  thinking: {
+    content: string;
+    isThinking: boolean;
+    timeStart: number;
+  } | null;
+}
 
 interface ConversationStore {
   // State
   conversations: Conversation[];
   models: Model[];
+  currentMessage: CurrentMessage | null;
   isLoading: boolean;
   error: string | null;
+  selectedModel: string;
+  setSelectedModel: (model: string) => void;
 
   // Actions for conversations
   setConversations: (conversations: Conversation[]) => void;
   updateConversationMessages: (id: string, messages: Message[]) => void;
   deleteConversation: (id: string) => Promise<void>;
+  addConversation: (conversation: Conversation) => void;
+  addUserMessage: (id: string, content: string) => void;
+
+  // Actions for incoming chunks
+  addChunkToCurrentMessage: (chunk: string) => void;
+  setThinkingState: (thinking: boolean, content?: string) => void;
+  finalizeCurrentMessage: (conversationId: string) => void;
 
   // Actions for models
   setModels: (models: Model[]) => void;
@@ -23,6 +44,11 @@ interface ConversationStore {
   fetchConversations: () => Promise<void>;
   fetchConversationById: (id: string) => Promise<void>;
   fetchModels: () => Promise<void>;
+
+  // WebSocket actions
+  startNewConversation: (model: string, message: string) => void;
+  resumeConversation: (id: string) => void;
+  sendMessage: (id: string, message: string, model: string) => void;
 }
 
 export const useConversationStore = create<ConversationStore>((set, get) => ({
@@ -30,6 +56,94 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
   models: [],
   isLoading: false,
   error: null,
+  currentMessage: null,
+  selectedModel: "",
+  setSelectedModel: (model: string) => set({ selectedModel: model }),
+
+  addChunkToCurrentMessage: (chunk: string) =>
+    set((state) => ({
+      currentMessage: {
+        role: "assistant",
+        content: (state.currentMessage?.content || "") + chunk,
+        thinking: state.currentMessage?.thinking || null,
+      },
+    })),
+
+  addUserMessage: (id: string, content: string) =>
+    set((state) => ({
+      conversations: state.conversations.map((conv) =>
+        conv.ID === id
+          ? {
+              ...conv,
+              Messages: [
+                ...conv.Messages,
+                {
+                  ID: crypto.randomUUID(),
+                  ConversationID: id,
+                  Role: "user",
+                  Content: content,
+                  RawContent: content,
+                  CreatedAt: new Date().toISOString(),
+                  Thinking: null,
+                  ThinkingTime: null,
+                },
+              ],
+            }
+          : conv
+      ),
+    })),
+
+  setThinkingState: (thinking: boolean, content?: string) =>
+    set((state) => ({
+      currentMessage: {
+        role: "assistant",
+        content: state.currentMessage?.content || "",
+        thinking: thinking
+          ? {
+              content: content || state.currentMessage?.thinking?.content || "",
+              isThinking: thinking,
+              timeStart:
+                state.currentMessage?.thinking?.timeStart || Date.now(),
+            }
+          : state.currentMessage?.thinking || null,
+      },
+    })),
+
+  finalizeCurrentMessage: (conversationId: string) =>
+    set((state) => {
+      if (!state.currentMessage) return state;
+
+      const thinkingTime = state.currentMessage.thinking
+        ? (Date.now() - state.currentMessage.thinking.timeStart) / 1000
+        : null;
+
+      const newMessage = {
+        ID: crypto.randomUUID(),
+        ConversationID: conversationId,
+        Role: state.currentMessage.role,
+        Content: state.currentMessage.content,
+        RawContent: state.currentMessage.content,
+        Thinking: state.currentMessage.thinking?.content || null,
+        ThinkingTime: thinkingTime,
+        CreatedAt: new Date().toISOString(),
+      };
+
+      const conversations = state.conversations.map((conv) =>
+        conv.ID === conversationId
+          ? { ...conv, Messages: [...conv.Messages, newMessage] }
+          : conv
+      );
+
+      return {
+        conversations,
+        currentMessage: null,
+      };
+    }),
+
+  addConversation: (newConversation: Conversation) =>
+    set((state) => ({
+      conversations: [newConversation, ...state.conversations],
+    })),
 
   initializeApp: async () => {
     try {
@@ -102,5 +216,29 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
       console.error("Failed to fetch conversations:", error);
       throw error;
     }
+  },
+
+  startNewConversation: (model: string, message: string) => {
+    wsService.sendMessage({
+      type: "start_conversation",
+      model,
+      message,
+    });
+  },
+
+  resumeConversation: (id: string) => {
+    wsService.sendMessage({
+      type: "resume_conversation",
+      convo_id: id,
+    });
+  },
+
+  sendMessage: (id: string, message: string, model: string) => {
+    wsService.sendMessage({
+      type: "message",
+      convo_id: id,
+      model,
+      message,
+    });
   },
 }));
