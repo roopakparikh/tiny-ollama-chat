@@ -1,7 +1,41 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+// vite.config.ts
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-})
+  build: {
+    outDir: "../server/static",
+    emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Core React
+          "vendor-react": ["react", "react-dom"],
+
+          // Router
+          "vendor-router": ["react-router-dom"],
+
+          // State management
+          "vendor-state": ["zustand"],
+
+          // UI Components
+          "vendor-ui": [
+            "react-hot-toast",
+            "lucide-react",
+            "react-textarea-autosize",
+          ],
+
+          // Markdown processing (usually large)
+          "vendor-markdown": [
+            "react-markdown",
+            "remark-gfm",
+            "react-syntax-highlighter",
+          ],
+        },
+      },
+    },
+    target: "esnext",
+    minify: "esbuild",
+  },
+});
