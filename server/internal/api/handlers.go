@@ -20,11 +20,21 @@ type CreateConversationResponse struct {
 	Model string `json:"model"`
 }
 
+type ErrorResponse struct {
+	Message string `json:"message"`
+}
+
+func sendErrorResponse(w http.ResponseWriter, message string, statusCode int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+	json.NewEncoder(w).Encode(ErrorResponse{Message: message})
+}
+
 func CreateConversation(w http.ResponseWriter, r *http.Request) {
 	var req CreateConversationRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		sendErrorResponse(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
@@ -36,12 +46,13 @@ func CreateConversation(w http.ResponseWriter, r *http.Request) {
 	convoID, err := database.CreateConversation(title, req.Model)
 
 	if err != nil {
-		http.Error(w, "Failed to create conversation", http.StatusInternalServerError)
+		
+		sendErrorResponse(w, "Failed to create conversation", http.StatusInternalServerError)
 		return
 	}
 
 	if err := database.AddMessage(convoID, "user", req.Message); err != nil {
-		http.Error(w, "Failed to add message", http.StatusInternalServerError)
+		sendErrorResponse(w, "Failed to add message to conversation", http.StatusInternalServerError)
 		return
 	}
 
@@ -63,12 +74,12 @@ func GetConversation(w http.ResponseWriter, r *http.Request) {
 	conversation, err := database.GetConversationByID(convoID)
 
 	if err != nil {
-		http.Error(w, "Failed to fetch conversation", http.StatusInternalServerError)
+		sendErrorResponse(w, "Failed to fetch conversation", http.StatusInternalServerError)
 		return
 	}
 
 	if conversation == nil {
-		http.Error(w, "Conversation not found", http.StatusNotFound)
+		sendErrorResponse(w, "Conversation not found", http.StatusNotFound)
 		return
 	}
 
@@ -81,27 +92,23 @@ func ListModels(w http.ResponseWriter, r *http.Request) {
 
 	models, err := client.ListModels()
 	if err != nil {
-		http.Error(w, "Failed to fetch models", http.StatusInternalServerError)
+		sendErrorResponse(w, "Failed to fetch models", http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"models": models,
-	})
+	json.NewEncoder(w).Encode(models);
 }
 
 func ListConversations(w http.ResponseWriter, r *http.Request) {
 	conversations, err := database.ListConversations()
 	if err != nil {
-		http.Error(w, "Failed to fetch conversations", http.StatusInternalServerError)
+		sendErrorResponse(w, "Failed to fetch conversations", http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"conversations": conversations,
-	})
+	json.NewEncoder(w).Encode(conversations)
 }
 
 func DeleteConversation(w http.ResponseWriter, r *http.Request) {
@@ -109,7 +116,7 @@ func DeleteConversation(w http.ResponseWriter, r *http.Request) {
 	convoID := vars["id"]
 
 	if err := database.DeleteConversation(convoID); err != nil {
-		http.Error(w, "Failed to delete conversation", http.StatusInternalServerError)
+		// http.Error(w, "Failed to delete conversation", http.StatusInternalServerError)
 		return
 	}
 

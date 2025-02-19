@@ -1,8 +1,11 @@
 package api
 
-import "github.com/gorilla/mux"
+import (
+	"github.com/gorilla/mux"
+)
 
 func RegisterRoutes(r *mux.Router) {
+
 	r.HandleFunc("/conversations", CreateConversation).Methods("POST")
 	r.HandleFunc("/conversations", ListConversations).Methods("GET")
 	r.HandleFunc("/conversations/{id}", GetConversation).Methods("GET")

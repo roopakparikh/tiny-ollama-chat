@@ -134,7 +134,7 @@ func handleMessage(client *Client, req WSRequest) {
 		sendError(client, "No active conversation")
 		return
 	}
-
+	log.Printf("User sent Message: %s, For model: %s", req.Message,req.Model)
 	log.Printf("Saving user message to conversation: %s", client.currentConvoID)
 	if err := database.AddMessage(client.currentConvoID, "user", req.Message); err != nil {
 		log.Printf("Failed to save user message: %v", err)
