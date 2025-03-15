@@ -58,11 +58,11 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
       
       {/* Sidebar */}
       <div
-        className={`fixed md:relative h-full z-50 md:z-auto transition-all duration-300 bg-gray-950 border-r border-gray-800 ${
-          isOpen ? 'translate-x-0 w-80' : '-translate-x-full w-0 md:w-0'
+        className={`fixed md:relative h-full z-50 md:z-auto bg-gray-950 border-r border-gray-800 w-80 transition-transform duration-300 ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className={`h-full flex flex-col ${!isOpen && "invisible"}`}>
+        <div className="h-full flex flex-col">
           {/* Sidebar Header with Branding */}
           <div className="p-4 border-b border-gray-800">
             <div className="flex items-center justify-between mb-4">
