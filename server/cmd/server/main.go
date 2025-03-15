@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/fatih/color"
+
 	"ollama-tiny-chat/server/internal/api"
 	"ollama-tiny-chat/server/internal/config"
 	"ollama-tiny-chat/server/internal/database"
@@ -17,6 +19,12 @@ import (
 )
 
 func main() {
+	// Display welcome banner
+	fmt.Println()
+	fmt.Println(color.GreenString("🤖 Tiny Ollama Chat"))
+	fmt.Println(color.GreenString("────────────────────"))
+	fmt.Println()
+
 	// Initialize configuration
 	config.ParseFlags()
 
@@ -82,7 +90,16 @@ func main() {
 
 	// Start server with configured port
 	serverAddr := config.GetServerAddress()
-	fmt.Printf("Server starting on %s...\n", serverAddr)
+
+	// Print startup banner
+	fmt.Println()
+	fmt.Println(color.GreenString("🚀 Server started successfully!"))
+	fmt.Println(color.GreenString("────────────────────────────────────"))
+	fmt.Printf("%s %s\n", color.YellowString("🌐 Local:"), color.CyanString("http://localhost%s", serverAddr))
+	fmt.Printf("%s %s\n", color.YellowString("📁 Ollama:"), color.CyanString(config.Get().OllamaURL))
+	fmt.Println(color.GreenString("────────────────────────────────────"))
+	fmt.Println()
+
 	if err := http.ListenAndServe(serverAddr, r); err != nil {
 		log.Fatal("Server failed to start:", err)
 	}

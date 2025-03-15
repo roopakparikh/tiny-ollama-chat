@@ -3,10 +3,15 @@ package config
 import (
 	"flag"
 	"fmt"
+	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
+	"time"
+
+	"github.com/fatih/color"
 )
 
 // Config holds the application configuration
@@ -44,6 +49,19 @@ func Get() *Config {
 func ParseFlags() {
 	cfg := Get()
 
+	// Add a custom usage message
+	flag.Usage = func() {
+		fmt.Fprintf(flag.CommandLine.Output(), "%s\n\n", color.GreenString("🤖 Tiny Ollama Chat - A lightweight UI for Ollama models"))
+		fmt.Fprintf(flag.CommandLine.Output(), "%s\n", color.YellowString("Usage:"))
+		fmt.Fprintf(flag.CommandLine.Output(), "  %s [options]\n\n", os.Args[0])
+		fmt.Fprintf(flag.CommandLine.Output(), "%s\n", color.YellowString("Options:"))
+		flag.PrintDefaults()
+		fmt.Fprintf(flag.CommandLine.Output(), "\n%s\n", color.YellowString("Examples:"))
+		fmt.Fprintf(flag.CommandLine.Output(), "  Run with default settings:\n    %s\n\n", os.Args[0])
+		fmt.Fprintf(flag.CommandLine.Output(), "  Run on a different port:\n    %s -port=9000\n\n", os.Args[0])
+		fmt.Fprintf(flag.CommandLine.Output(), "  Connect to Ollama on a different machine:\n    %s -ollama-url=http://192.168.1.100:11434\n\n", os.Args[0])
+	}
+
 	// Define command line flags
 	serverPort := flag.Int("port", DefaultServerPort, "Port for the server to listen on")
 	ollamaURL := flag.String("ollama-url", DefaultOllamaURL, "URL for the Ollama API")
@@ -70,7 +88,7 @@ func Validate() error {
 		return fmt.Errorf("invalid port number: %d (must be between 1 and 65535)", cfg.ServerPort)
 	}
 
-	// Validate Ollama URL
+	// Validate Ollama URL format
 	parsedURL, err := url.Parse(cfg.OllamaURL)
 	if err != nil {
 		return fmt.Errorf("invalid Ollama URL: %w", err)
@@ -79,6 +97,32 @@ func Validate() error {
 		return fmt.Errorf("unsupported URL scheme: %s (must be http or https)", parsedURL.Scheme)
 	}
 
+	// Check if Ollama is accessible
+	fmt.Printf("Checking Ollama connection at %s... ", cfg.OllamaURL)
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+	}
+	
+	resp, err := client.Get(cfg.OllamaURL + "/api/tags")
+	if err != nil {
+		fmt.Println(color.RedString("Failed"))
+		return fmt.Errorf("\n%s cannot connect to Ollama at %s: %w\n%s", 
+			color.RedString("ERROR:"),
+			cfg.OllamaURL,
+			err,
+			color.YellowString("\nMake sure Ollama is running and accessible at the specified URL"))
+	}
+	defer resp.Body.Close()
+	
+	if resp.StatusCode != http.StatusOK {
+		fmt.Println(color.RedString("Failed"))
+		return fmt.Errorf("\n%s Ollama API returned status code %d\n%s", 
+			color.RedString("ERROR:"),
+			resp.StatusCode,
+			color.YellowString("\nMake sure Ollama is running properly"))
+	}
+	
+	fmt.Println(color.GreenString("Connected"))
 	return nil
 }
 
@@ -90,5 +134,7 @@ func GetServerAddress() string {
 // String returns a string representation of the configuration
 func String() string {
 	cfg := Get()
-	return fmt.Sprintf("Server port: %d, Ollama URL: %s", cfg.ServerPort, cfg.OllamaURL)
+	return fmt.Sprintf("Server port: %s, Ollama URL: %s", 
+		color.YellowString("%d", cfg.ServerPort), 
+		color.YellowString("%s", cfg.OllamaURL))
 }
