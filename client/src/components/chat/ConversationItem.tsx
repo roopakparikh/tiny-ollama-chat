@@ -6,20 +6,28 @@ import { getRelativeTime } from "../../lib/utils.ts";
 type ConversationItemProps = {
   conversation: Pick<ConversationType, "ID" | "Title" | "Model" | "UpdatedAt">;
   onDelete: (id: string) => void;
-  selectedConversationID:string
+  selectedConversationID: string;
+  onSelect?: () => void; // Added callback for when conversation is selected
 };
 
 const ConversationItem = ({
   conversation,
   onDelete,
-  selectedConversationID
+  selectedConversationID,
+  onSelect
 }: ConversationItemProps) => {
   const navigate = useNavigate();
 
 
   return (
     <div
-      onClick={() => navigate(`/chat/${conversation.ID}`)}
+      onClick={() => {
+        navigate(`/chat/${conversation.ID}`);
+        // If onSelect is provided, call it (used to close sidebar on mobile)
+        if (onSelect) {
+          onSelect();
+        }
+      }}
       className={`p-3 mx-2 mb-2 rounded-xl hover:bg-gray-800 cursor-pointer transition-colors duration-200 ${
         selectedConversationID === conversation.ID
           ? " bg-gray-800"

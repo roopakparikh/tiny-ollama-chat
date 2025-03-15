@@ -66,7 +66,13 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           {/* Sidebar Header */}
           <div className="p-4 border-b border-gray-800 flex justify-between items-center">
             <button
-              onClick={() => navigate("/")}
+              onClick={() => {
+                navigate("/");
+                // Close sidebar on mobile when clicking New Chat
+                if (window.innerWidth < 768) { // 768px is md breakpoint in Tailwind
+                  onClose();
+                }
+              }}
               className="flex items-center gap-2 px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-gray-200 text-sm transition-colors duration-200"
             >
               <Plus className="w-4 h-4" />
@@ -96,6 +102,12 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                   selectedConversationID={
                     selectedConversation?.ID ? selectedConversation.ID : ""
                   }
+                  onSelect={() => {
+                    // Close sidebar on mobile when selecting a conversation
+                    if (window.innerWidth < 768) {
+                      onClose();
+                    }
+                  }}
                 />
               ))
             )}
