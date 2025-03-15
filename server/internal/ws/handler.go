@@ -79,7 +79,11 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 func handleNewConversation(client *Client, req WSRequest) {
 	log.Printf("Creating new conversation with first message: %s", req.Message)
-	convoID, err := database.CreateConversation(req.Message, req.Model)
+	title := req.Message
+	if len(title) > 30 {
+		title = title[:30] + "..."
+	}
+	convoID, err := database.CreateConversation(title, req.Model)
 	if err != nil {
 		log.Printf("Failed to create conversation: %v", err)
 		sendError(client, "Failed to create conversation")
