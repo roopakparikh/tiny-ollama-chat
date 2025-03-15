@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"ollama-tiny-chat/server/internal/api"
+	"ollama-tiny-chat/server/internal/config"
 	"ollama-tiny-chat/server/internal/database"
 	"ollama-tiny-chat/server/internal/ws"
 
@@ -16,10 +17,21 @@ import (
 )
 
 func main() {
+	// Initialize configuration
+	config.ParseFlags()
+
+	// Validate configuration
+	if err := config.Validate(); err != nil {
+		log.Fatalf("Invalid configuration: %v", err)
+	}
+
 	// Initialize database
 	if err := database.InitDB(); err != nil {
 		log.Fatal("Failed to initialize database:", err)
 	}
+
+	// Display configuration
+	log.Printf("Configuration: %s", config.String())
 
 	workingDir, err := os.Getwd()
 	if err != nil {
@@ -68,10 +80,10 @@ func main() {
 
 	r.PathPrefix("/").Handler(spaHandler)
 
-
-	// Start server
-	fmt.Println("Server starting on :8080...")
-	if err := http.ListenAndServe(":8080", r); err != nil {
+	// Start server with configured port
+	serverAddr := config.GetServerAddress()
+	fmt.Printf("Server starting on %s...\n", serverAddr)
+	if err := http.ListenAndServe(serverAddr, r); err != nil {
 		log.Fatal("Server failed to start:", err)
 	}
 }

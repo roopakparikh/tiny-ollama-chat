@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"ollama-tiny-chat/server/internal/config"
 	"ollama-tiny-chat/server/internal/database"
 	"ollama-tiny-chat/server/internal/ollama"
 
@@ -88,7 +89,7 @@ func GetConversation(w http.ResponseWriter, r *http.Request) {
 }
 
 func ListModels(w http.ResponseWriter, r *http.Request) {
-	client := ollama.NewClient("")
+	client := ollama.NewClient(config.Get().OllamaURL)
 
 	models, err := client.ListModels()
 	if err != nil {

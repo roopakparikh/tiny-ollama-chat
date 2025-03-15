@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"ollama-tiny-chat/server/internal/config"
 	"ollama-tiny-chat/server/internal/database"
 	"ollama-tiny-chat/server/internal/ollama"
 	"strings"
@@ -180,7 +181,7 @@ func generateResponse(client *Client, req WSRequest, isFirstMessage bool) {
 	})
 	log.Printf("Sending request to Ollama with %d messages", len(ollamaMessages))
 
-	ollamaClient := ollama.NewClient("")
+	ollamaClient := ollama.NewClient(config.Get().OllamaURL)
 	resp, err := ollamaClient.GenerateStream(req.Model, ollamaMessages)
 	if err != nil {
 		log.Printf("Ollama request failed: %v", err)
