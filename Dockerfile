@@ -61,7 +61,7 @@ RUN mkdir -p data
 
 # Environment variables with defaults
 ENV PORT=8080 \
-    OLLAMA_URL="http://172.17.0.1:11434" \
+    OLLAMA_URL="http://host.docker.internal:11434" \
     DB_PATH="/app/data/chat.db"
 
 # Expose the port (using the environment variable)
