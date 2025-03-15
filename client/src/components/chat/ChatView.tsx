@@ -123,8 +123,8 @@ const ChatView = ({ id }: { id?: string }) => {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Header */}
-      <div className="p-4 md:pl-14 border-b border-gray-800">
+      {/* Header with centered title for better mobile experience */}
+      <div className="p-4 md:pl-14 border-b border-gray-800 flex items-center justify-center relative">
         {(isInitialLoading || isMessagesLoading || isThinking) && (
           <div className="absolute top-0 left-0 right-0">
             <div className="h-1 bg-blue-500/20">
@@ -132,12 +132,16 @@ const ChatView = ({ id }: { id?: string }) => {
             </div>
           </div>
         )}
-        <h1 className="text-xl font-semibold text-gray-200">
+        
+        <h1 className="text-xl font-semibold text-gray-200 text-center">
           {id ? selectedConversation?.Title || "Chat" : "New Chat"}
         </h1>
-
-        {!id && (
-          <div className="max-w-xs mt-2">
+      </div>
+      
+      {/* Model Selector */}
+      {!id && (
+        <div className="px-4 pt-4 pb-2 w-full flex justify-center border-b border-gray-800">
+          <div className="w-full max-w-sm">
             <ModelSelector
               selectedModel={selectedModel || defaultModel}
               onModelSelect={(model) => {
@@ -145,79 +149,109 @@ const ChatView = ({ id }: { id?: string }) => {
               }}
             />
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Messages */}
+      {/* Messages or Welcome Screen */}
       <div className="flex-1 overflow-y-auto" ref={messagesContainerRef}>
-        {isMessagesLoading && id ? (
-          <>
-            <MessageSkeleton />
-            <MessageSkeleton />
-            <MessageSkeleton />
-          </>
-        ) : (
-          <>
-            {selectedConversation?.Messages?.map((message) => (
-              <MessageComponent key={message.ID} message={message} />
-            ))}
+        {id ? (
+          // Show messages if we have a conversation ID
+          isMessagesLoading ? (
+            <>
+              <MessageSkeleton />
+              <MessageSkeleton />
+              <MessageSkeleton />
+            </>
+          ) : (
+            <>
+              {selectedConversation?.Messages?.map((message) => (
+                <MessageComponent key={message.ID} message={message} />
+              ))}
 
-            {/* Show thinking section */}
-            {isThinking && (
-              <div className="py-4 bg-gray-900/50">
-                <div className="max-w-4xl mx-auto px-4">
-                  <div className="mb-1 text-xs font-medium text-gray-500">
-                    Assistant
-                  </div>
-                  <div className="text-gray-300">
-                    {currentThinking ? (
-                      <div className="text-gray-400 text-sm">
-                        <div className="mb-2 flex items-center gap-2">
+              {/* Show thinking section */}
+              {isThinking && (
+                <div className="py-4 bg-gray-900/50">
+                  <div className="max-w-4xl mx-auto px-4">
+                    <div className="mb-1 text-xs font-medium text-gray-500">
+                      Assistant
+                    </div>
+                    <div className="text-gray-300">
+                      {currentThinking ? (
+                        <div className="text-gray-400 text-sm">
+                          <div className="mb-2 flex items-center gap-2">
+                            <div className="flex gap-1">
+                              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                              <div
+                                className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"
+                                style={{ animationDelay: "300ms" }}
+                              ></div>
+                              <div
+                                className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"
+                                style={{ animationDelay: "600ms" }}
+                              ></div>
+                            </div>
+                            <span className="text-xs font-medium text-blue-400">
+                              Thinking...
+                            </span>
+                          </div>
+                          <div className="pl-5 py-2 border-l-2 border-blue-800/30 text-sm text-gray-400 bg-blue-900/10 rounded-r-md">
+                            {currentThinking}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
                           <div className="flex gap-1">
-                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
                             <div
-                              className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"
+                              className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                              style={{ animationDelay: "0ms" }}
+                            ></div>
+                            <div
+                              className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
                               style={{ animationDelay: "300ms" }}
                             ></div>
                             <div
-                              className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"
+                              className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
                               style={{ animationDelay: "600ms" }}
                             ></div>
                           </div>
-                          <span className="text-xs font-medium text-blue-400">
+                          <span className="text-sm text-gray-400">
                             Thinking...
                           </span>
                         </div>
-                        <div className="pl-5 py-2 border-l-2 border-blue-800/30 text-sm text-gray-400 bg-blue-900/10 rounded-r-md">
-                          {currentThinking}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <div className="flex gap-1">
-                          <div
-                            className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
-                            style={{ animationDelay: "0ms" }}
-                          ></div>
-                          <div
-                            className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
-                            style={{ animationDelay: "300ms" }}
-                          ></div>
-                          <div
-                            className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
-                            style={{ animationDelay: "600ms" }}
-                          ></div>
-                        </div>
-                        <span className="text-sm text-gray-400">
-                          Thinking...
-                        </span>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </>
+              )}
+            </>
+          )
+        ) : (
+          // Welcome screen when no conversation is selected
+          <div className="h-full flex flex-col items-center justify-center px-4 text-center">
+            <div className="mb-8 text-5xl">🤖</div>
+            <h1 className="text-3xl font-bold text-gray-200 mb-4">Tiny Ollama Chat</h1>
+            <p className="text-gray-400 max-w-md mb-8">
+              A lightweight interface for chatting with your local Ollama models.
+              Select a model and start a new conversation.
+            </p>
+            <div className="flex flex-col items-center">
+              <p className="text-gray-500 text-sm mb-2">Features:</p>
+              <ul className="text-gray-400 text-sm text-left">
+                <li className="flex items-center mb-1">
+                  <span className="mr-2 text-blue-500">•</span> Real-time streaming responses
+                </li>
+                <li className="flex items-center mb-1">
+                  <span className="mr-2 text-blue-500">•</span> View AI thinking process
+                </li>
+                <li className="flex items-center mb-1">
+                  <span className="mr-2 text-blue-500">•</span> Chat history and conversation management
+                </li>
+                <li className="flex items-center">
+                  <span className="mr-2 text-blue-500">•</span> Support for all your Ollama models
+                </li>
+              </ul>
+            </div>
+          </div>
         )}
       </div>
 

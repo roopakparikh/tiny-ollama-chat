@@ -63,8 +63,22 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
         }`}
       >
         <div className={`h-full flex flex-col ${!isOpen && "invisible"}`}>
-          {/* Sidebar Header */}
-          <div className="p-4 border-b border-gray-800 flex justify-between items-center">
+          {/* Sidebar Header with Branding */}
+          <div className="p-4 border-b border-gray-800">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <span className="text-blue-500 text-xl mr-2">
+                  🤖
+                </span>
+                <h1 className="text-lg font-bold text-gray-200">Tiny Ollama Chat</h1>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-1 hover:bg-gray-800 rounded-lg transition-colors duration-200"
+              >
+                <ChevronLeft className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
             <button
               onClick={() => {
                 navigate("/");
@@ -73,16 +87,10 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                   onClose();
                 }
               }}
-              className="flex items-center gap-2 px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-gray-200 text-sm transition-colors duration-200"
+              className="w-full flex items-center justify-center gap-2 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-gray-200 text-sm transition-colors duration-200"
             >
               <Plus className="w-4 h-4" />
               New Chat
-            </button>
-            <button
-              onClick={onClose}
-              className="p-1 hover:bg-gray-800 rounded-lg transition-colors duration-200"
-            >
-              <ChevronLeft className="w-5 h-5 text-gray-400" />
             </button>
           </div>
           {/* Conversation List */}

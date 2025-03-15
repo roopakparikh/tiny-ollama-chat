@@ -15,10 +15,11 @@ const ChatPage = () => {
 
       {/* Toggle Sidebar Button (shown when sidebar is closed) */}
       {!isSidebarOpen && (
-        <div className="absolute top-0 left-0 w-12 h-screen z-10 flex items-start pt-4 pl-4">
+        <div className="absolute top-0 left-0 z-10 p-4">
           <button
             onClick={() => setIsSidebarOpen(true)}
-            className="p-1.5 bg-gray-900 hover:bg-gray-800 rounded-lg transition-colors duration-200"
+            className="p-1.5 bg-gray-900 hover:bg-gray-800 rounded-lg transition-colors duration-200 flex items-center justify-center"
+            aria-label="Open sidebar"
           >
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </button>
