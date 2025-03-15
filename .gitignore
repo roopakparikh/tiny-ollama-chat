@@ -64,7 +64,4 @@ yarn-error.log*
 .env.production.local
 tiny-ollama-chat
 
-# If using Next.js or similar frameworks, uncomment the following:
-# .next/
-# out/
 

@@ -33,14 +33,36 @@ cd ..
 
 echo "✅ Build complete!"
 echo ""
-echo "📋 To run the application:"
-echo "   cd build"
-echo "   ./tiny-ollama-chat"
-echo ""
-echo "🔧 Optional flags:"
-echo "   -port=8080              Set server port (default: 8080)"
-echo "   -ollama-url=URL         Set Ollama API URL (default: http://localhost:11434)"
-echo "   -db-path=PATH           Set database path (default: chat.db)"
-echo ""
-echo "📝 Example:"
-echo "   ./tiny-ollama-chat -port=9000 -ollama-url=http://192.168.1.100:11434"
+
+# Function to print a highlighted box
+print_highlighted_box() {
+    local text="$1"
+    local width=80
+    local line="━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    
+    echo -e "\033[1;33m┏${line:0:$width}┓\033[0m"
+    
+    echo "$text" | while IFS= read -r line_text; do
+        printf "\033[1;33m┃ \033[1;37m%-$(($width-1))s\033[1;33m┃\033[0m\n" "$line_text"
+    done
+    
+    echo -e "\033[1;33m┗${line:0:$width}┛\033[0m"
+}
+
+# Print highlighted usage instructions
+print_highlighted_box "HOW TO USE TINY OLLAMA CHAT
+----------------------------
+
+1. Change to the build directory:
+   cd build
+
+2. Run the application:
+   ./tiny-ollama-chat
+
+OPTIONAL FLAGS:
+   -port=8080              Set server port (default: 8080)
+   -ollama-url=URL         Set Ollama API URL (default: http://localhost:11434)
+   -db-path=PATH           Set database path (default: chat.db)
+
+EXAMPLE:
+   ./tiny-ollama-chat -port=9000 -ollama-url=http://192.168.1.100:11434"
