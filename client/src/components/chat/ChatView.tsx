@@ -124,7 +124,7 @@ const ChatView = ({ id }: { id?: string }) => {
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-gray-800">
+      <div className="p-4 md:pl-14 border-b border-gray-800">
         {(isInitialLoading || isMessagesLoading || isThinking) && (
           <div className="absolute top-0 left-0 right-0">
             <div className="h-1 bg-blue-500/20">

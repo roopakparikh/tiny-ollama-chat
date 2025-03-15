@@ -40,12 +40,27 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
     }
   };
 
+  // Handle clicks outside the sidebar (only on small screens)
+  const handleOutsideClick = (e: React.MouseEvent) => {
+    // Only trigger on the overlay element, not its children
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
-    <div>
+    <>
+      {/* Overlay for small screens - only visible when sidebar is open */}
+      <div 
+        onClick={handleOutsideClick}
+        className={`md:hidden fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+      />
+      
+      {/* Sidebar */}
       <div
-        className={`${
-          isOpen ? "w-80" : "w-0"
-        } h-full transition-all duration-300 bg-gray-950 border-r border-gray-800 relative`}
+        className={`fixed md:relative h-full z-50 md:z-auto transition-all duration-300 bg-gray-950 border-r border-gray-800 ${
+          isOpen ? 'translate-x-0 w-80' : '-translate-x-full w-0 md:w-0'
+        }`}
       >
         <div className={`h-full flex flex-col ${!isOpen && "invisible"}`}>
           {/* Sidebar Header */}
@@ -93,7 +108,7 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
         onClose={() => setConversationToDelete(null)}
         onConfirm={handleConfirmDelete}
       />
-    </div>
+    </>
   );
 };
 

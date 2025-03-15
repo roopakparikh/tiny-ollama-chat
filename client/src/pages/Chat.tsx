@@ -10,21 +10,23 @@ const ChatPage = () => {
 
   return (
     <div className="flex h-screen bg-gray-950 text-gray-200">
-      {/* Toggle Sidebar Button (shown when sidebar is closed) */}
-      {!isSidebarOpen && (
-        <button
-          onClick={() => setIsSidebarOpen(true)}
-          className="absolute top-4 left-4 p-1 hover:bg-gray-800 rounded-lg transition-colors duration-200 z-50"
-        >
-          <ChevronRight className="w-5 h-5 text-gray-400" />
-        </button>
-      )}
-
       {/* Sidebar */}
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
+      {/* Toggle Sidebar Button (shown when sidebar is closed) */}
+      {!isSidebarOpen && (
+        <div className="absolute top-0 left-0 w-12 h-screen z-10 flex items-start pt-4 pl-4">
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="p-1.5 bg-gray-900 hover:bg-gray-800 rounded-lg transition-colors duration-200"
+          >
+            <ChevronRight className="w-5 h-5 text-gray-400" />
+          </button>
+        </div>
+      )}
+
       {/* Main Content */}
-      <div className="flex-1">
+      <div className="flex-1 relative">
         <ChatView id={id} />
       </div>
     </div>
