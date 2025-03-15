@@ -1,12 +1,41 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "../components/chat/Sidebar.tsx";
 import { ChevronRight } from "lucide-react";
 import ChatView from "../components/chat/ChatView.tsx";
 import { useParams } from "react-router-dom";
 
 const ChatPage = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    // Check screen width and localStorage on initial render
+    const savedState = localStorage.getItem('sidebarOpen');
+    
+    // On mobile (less than 768px width), default to closed regardless of saved state
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      return false;
+    }
+    
+    // On desktop, use the saved state or default to true
+    return savedState !== null ? savedState === 'true' : true;
+  });
+  
   const { id } = useParams(); // We'll keep it here since it's the parent component
+
+  // Save sidebar state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('sidebarOpen', isSidebarOpen.toString());
+  }, [isSidebarOpen]);
+
+  // Handle window resize to close sidebar on mobile
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768 && isSidebarOpen) {
+        setIsSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isSidebarOpen]);
 
   return (
     <div className="flex h-screen bg-gray-950 text-gray-200">
