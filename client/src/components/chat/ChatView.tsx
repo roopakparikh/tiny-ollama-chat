@@ -22,6 +22,8 @@ const ChatView = ({ id }: { id?: string }) => {
   const navigate = useNavigate();
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const resumedIdRef = useRef<string | null>(null);
+  const isUserScrollingRef = useRef(false);
+  const lastMessageIdRef = useRef<string | null>(null);
   const {
     isThinking,
     currentThinking,
@@ -52,10 +54,77 @@ const ChatView = ({ id }: { id?: string }) => {
     (state) => state.getConversation
   );
 
+  // Detect when user manually scrolls and prevent auto-scroll while they're interacting
   useEffect(() => {
-    if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop =
-        messagesContainerRef.current.scrollHeight;
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    let userScrollTimeout: NodeJS.Timeout;
+
+    const handleScrollStart = () => {
+      isUserScrollingRef.current = true;
+      
+      // Clear any existing timeout
+      if (userScrollTimeout) {
+        clearTimeout(userScrollTimeout);
+      }
+    };
+
+    const handleScrollEnd = () => {
+      // Set a timeout before clearing the user scrolling flag
+      // This prevents auto-scroll from kicking in too soon
+      userScrollTimeout = setTimeout(() => {
+        isUserScrollingRef.current = false;
+      }, 1000); // Wait 1 second after scrolling stops
+    };
+
+    // Use both mousedown and touchstart to detect when user begins scrolling
+    container.addEventListener('mousedown', handleScrollStart);
+    container.addEventListener('touchstart', handleScrollStart);
+    
+    // Use both mouseup and touchend to detect when user stops scrolling
+    container.addEventListener('mouseup', handleScrollEnd);
+    container.addEventListener('touchend', handleScrollEnd);
+
+    return () => {
+      container.removeEventListener('mousedown', handleScrollStart);
+      container.removeEventListener('touchstart', handleScrollStart);
+      container.removeEventListener('mouseup', handleScrollEnd);
+      container.removeEventListener('touchend', handleScrollEnd);
+      
+      if (userScrollTimeout) {
+        clearTimeout(userScrollTimeout);
+      }
+    };
+  }, []);
+
+  // Auto-scroll logic
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    // Get the ID of the last message (if any)
+    const messages = selectedConversation?.Messages || [];
+    const lastMessage = messages[messages.length - 1];
+    const lastMessageId = lastMessage?.ID || null;
+    
+    // Determine if this is a new message or a different conversation
+    const isNewMessage = lastMessageId !== lastMessageIdRef.current;
+    const isNewConversation = id !== resumedIdRef.current;
+    
+    // Update the ref for next comparison
+    lastMessageIdRef.current = lastMessageId;
+    
+    // Only auto-scroll if:
+    // 1. User is not actively scrolling OR
+    // 2. This is a completely new message OR
+    // 3. We switched conversations
+    if (!isUserScrollingRef.current || isNewMessage || isNewConversation) {
+      // Use smooth scrolling for better user experience
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: 'smooth'
+      });
     }
   }, [selectedConversation?.Messages, id, isThinking, currentThinking]);
 
@@ -153,7 +222,14 @@ const ChatView = ({ id }: { id?: string }) => {
       )}
 
       {/* Messages or Welcome Screen */}
-      <div className="flex-1 overflow-y-auto" ref={messagesContainerRef}>
+      <div 
+        className="flex-1 overflow-y-auto" 
+        ref={messagesContainerRef}
+        onScroll={() => {
+          // Mark that user is scrolling when they actively scroll
+          isUserScrollingRef.current = true;
+        }}
+      >
         {id ? (
           // Show messages if we have a conversation ID
           isMessagesLoading ? (
