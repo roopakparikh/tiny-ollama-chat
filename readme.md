@@ -46,7 +46,7 @@ This makes Ollama accessible from other machines and containers by binding to al
 The easiest way to get started is to pull the pre-built image from the GitHub Container Registry:
 
 ```bash
-docker pull ghcr.io/anishgowda21/tiny-ollama-chat:latest
+docker run -p 8080:8080 -v chat-data:/app/data ghcr.io/anishgowda21/tiny-ollama-chat:latest
 ```
 
 ### Option 2: Build Docker Image Locally
@@ -59,7 +59,7 @@ docker build -t tiny-ollama-chat .
 
 ### Running the Docker Container
 
-For both options, run the container with:
+run the container with:
 
 ```bash
 docker run -p 8080:8080 -v chat-data:/app/data tiny-ollama-chat
