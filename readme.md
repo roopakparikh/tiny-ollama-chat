@@ -11,6 +11,12 @@ A lightweight and efficient UI for interacting with Ollama models locally. This 
 - 🔗 Custom Ollama URL configuration
 - 💾 Persistent storage with SQLite
 
+## 📸 Screenshots & Demo
+
+![Tiny Ollama Chat Interface](screenshots/ss1.png)
+
+![Tiny Ollama Chat Demo](screenshots/demo.gif)
+
 ## 🚦 Prerequisites
 
 - Ollama running locally or on a network-accessible machine
