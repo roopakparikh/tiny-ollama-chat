@@ -63,8 +63,28 @@ class WebSocketService {
   private eventListeners: Map<WSEventType, WSEventListener[]> = new Map();
   private isConnecting = false;
 
-  constructor(url: string = `ws://${window.location.host}/ws`) {
-    this.url = url;
+  constructor(
+    options: {
+      url?: string;
+      forceSecure?: boolean;
+      path?: string;
+    } = {}
+  ) {
+    const { url, forceSecure = false, path = "/ws" } = options;
+
+    if (url) {
+      // If a complete URL is provided, use it directly
+      this.url = url;
+    } else {
+      // Determine protocol based on page protocol or forceSecure option
+      const isSecure = forceSecure || window.location.protocol === "https:";
+      const protocol = isSecure ? "wss:" : "ws:";
+
+      // Construct URL from current location
+      this.url = `${protocol}//${window.location.host}${path}`;
+    }
+
+    console.log(`WebSocket connecting to: ${this.url}`);
   }
 
   public connect(): Promise<boolean> {

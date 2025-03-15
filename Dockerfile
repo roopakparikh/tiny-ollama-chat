@@ -1,53 +1,56 @@
-FROM golang:1.21-alpine AS builder
+# Stage 1: Build the application
+FROM golang:1.23-alpine AS builder
 
 # Install build dependencies
-RUN apk add --no-cache gcc musl-dev git
+RUN apk add --no-cache gcc musl-dev git ca-certificates
 
-# Create app directory
+# Set working directory
 WORKDIR /build
 
-# Copy server code
-COPY server/ ./server/
-
-# Set the working directory to the server directory
-WORKDIR /build/server
-
-# Download dependencies
+# Copy go.mod and go.sum first to leverage Docker cache
+COPY server/go.* ./
 RUN go mod download
 
-# Build the binary
-RUN CGO_ENABLED=1 go build -o tiny-ollama-chat ./cmd/server/main.go
+# Copy the rest of the source code
+COPY server/ ./
 
-# Final image
+# Build the binary
+RUN CGO_ENABLED=1 go build -ldflags="-s -w" -o tiny-ollama-chat ./cmd/server/main.go
+
+# Stage 2: Create the runtime image
 FROM alpine:latest
 
-# Install runtime dependencies
-RUN apk add --no-cache ca-certificates tzdata
+# Install runtime dependencies and ca-certificates for HTTPS connections
+RUN apk --no-cache add ca-certificates tzdata
 
-# Create app directory structure - set it ONCE
+# Set working directory
 WORKDIR /app
-RUN mkdir -p static data
 
 # Copy the binary from the builder stage
-COPY --from=builder /build/server/tiny-ollama-chat ./
+COPY --from=builder /build/tiny-ollama-chat .
 
-# Copy the static directory if it exists in the source
-COPY server/static/ ./static/
+# Copy any static files if needed
+COPY --from=builder /build/static ./static
 
-# Environment variables for configuration
-ENV PORT=8080
-ENV OLLAMA_URL=http://host.docker.internal:11434
-ENV DB_PATH=/app/data/chat.db
+# Copy entrypoint script
+COPY entrypoint.sh .
 
-# Expose the port
-EXPOSE 8080
+# Make script executable
+RUN chmod +x entrypoint.sh
+
+# Create data directory
+RUN mkdir -p data
+
+# Environment variables with defaults
+ENV PORT=8080 \
+    OLLAMA_URL="http://172.17.0.1:11434" \
+    DB_PATH="/app/data/chat.db"
+
+# Expose the port (using the environment variable)
+EXPOSE ${PORT}
 
 # Create volume for persistent data
 VOLUME ["/app/data"]
 
-# Create entrypoint script that properly uses environment variables
-RUN echo '#!/bin/sh\n\
-exec ./tiny-ollama-chat -port=$PORT -ollama-url=$OLLAMA_URL -db-path=$DB_PATH "$@"' > ./entrypoint.sh && \
-chmod +x ./entrypoint.sh
-
+# Use the binary as the entrypoint, using environment variables for configuration
 ENTRYPOINT ["./entrypoint.sh"]
