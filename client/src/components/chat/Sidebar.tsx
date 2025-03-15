@@ -67,7 +67,7 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           <div className="p-4 border-b border-gray-800">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
-                <span className="text-blue-500 text-xl mr-2">
+                <span className="text-purple-500 text-xl mr-2">
                   🤖
                 </span>
                 <h1 className="text-lg font-bold text-gray-200">Tiny Ollama Chat</h1>
@@ -87,7 +87,7 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                   onClose();
                 }
               }}
-              className="w-full flex items-center justify-center gap-2 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-gray-200 text-sm transition-colors duration-200"
+              className="w-full flex items-center justify-center gap-2 py-2 bg-gray-800 hover:bg-purple-900/50 rounded-lg text-gray-200 text-sm transition-colors duration-200"
             >
               <Plus className="w-4 h-4" />
               New Chat

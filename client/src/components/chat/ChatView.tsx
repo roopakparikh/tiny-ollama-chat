@@ -196,8 +196,8 @@ const ChatView = ({ id }: { id?: string }) => {
       <div className="p-4 md:pl-14 border-b border-gray-800 flex items-center justify-center relative">
         {(isInitialLoading || isMessagesLoading || isThinking) && (
           <div className="absolute top-0 left-0 right-0">
-            <div className="h-1 bg-blue-500/20">
-              <div className="h-1 bg-blue-500 animate-progress"></div>
+            <div className="h-1 bg-purple-500/20">
+              <div className="h-1 bg-purple-600 animate-progress"></div>
             </div>
           </div>
         )}
@@ -256,21 +256,21 @@ const ChatView = ({ id }: { id?: string }) => {
                         <div className="text-gray-400 text-sm">
                           <div className="mb-2 flex items-center gap-2">
                             <div className="flex gap-1">
-                              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                              <div
-                                className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"
-                                style={{ animationDelay: "300ms" }}
-                              ></div>
-                              <div
-                                className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"
-                                style={{ animationDelay: "600ms" }}
-                              ></div>
+                            <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                            <div
+                            className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"
+                            style={{ animationDelay: "300ms" }}
+                            ></div>
+                            <div
+                            className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"
+                            style={{ animationDelay: "600ms" }}
+                            ></div>
                             </div>
-                            <span className="text-xs font-medium text-blue-400">
+                            <span className="text-xs font-medium text-purple-400">
                               Thinking...
                             </span>
                           </div>
-                          <div className="pl-5 py-2 border-l-2 border-blue-800/30 text-sm text-gray-400 bg-blue-900/10 rounded-r-md">
+                          <div className="pl-5 py-2 border-l-2 border-purple-800/30 text-sm text-gray-400 bg-purple-900/10 rounded-r-md">
                             {currentThinking}
                           </div>
                         </div>
@@ -278,15 +278,15 @@ const ChatView = ({ id }: { id?: string }) => {
                         <div className="flex items-center gap-2">
                           <div className="flex gap-1">
                             <div
-                              className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                              className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"
                               style={{ animationDelay: "0ms" }}
                             ></div>
                             <div
-                              className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                              className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"
                               style={{ animationDelay: "300ms" }}
                             ></div>
                             <div
-                              className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                              className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"
                               style={{ animationDelay: "600ms" }}
                             ></div>
                           </div>
@@ -314,16 +314,16 @@ const ChatView = ({ id }: { id?: string }) => {
               <p className="text-gray-500 text-sm mb-2">Features:</p>
               <ul className="text-gray-400 text-sm text-left">
                 <li className="flex items-center mb-1">
-                  <span className="mr-2 text-blue-500">•</span> Real-time streaming responses
+                  <span className="mr-2 text-purple-500">•</span> Real-time streaming responses
                 </li>
                 <li className="flex items-center mb-1">
-                  <span className="mr-2 text-blue-500">•</span> View AI thinking process
+                  <span className="mr-2 text-purple-500">•</span> View AI thinking process
                 </li>
                 <li className="flex items-center mb-1">
-                  <span className="mr-2 text-blue-500">•</span> Chat history and conversation management
+                  <span className="mr-2 text-purple-500">•</span> Chat history and conversation management
                 </li>
                 <li className="flex items-center">
-                  <span className="mr-2 text-blue-500">•</span> Support for all your Ollama models
+                  <span className="mr-2 text-purple-500">•</span> Support for all your Ollama models
                 </li>
               </ul>
             </div>

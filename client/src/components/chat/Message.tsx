@@ -139,7 +139,7 @@ const MessageComponent = ({ message }: { message: MessageType }) => {
             </button>
 
             {isThinkingExpanded && message.Thinking && (
-              <div className="mt-2 pl-6 py-2 border-l-2 border-blue-800/30 text-sm text-gray-500 bg-blue-900/10 rounded-r-md">
+              <div className="mt-2 pl-6 py-2 border-l-2 border-purple-800/30 text-sm text-gray-400 bg-purple-900/10 rounded-r-md">
                 <Suspense fallback={<div>Loading...</div>}>
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm]}

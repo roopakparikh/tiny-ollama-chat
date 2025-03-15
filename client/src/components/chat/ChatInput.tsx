@@ -66,7 +66,7 @@ const ChatInput = ({ modelName, conversationId }: ChatInputProps) => {
               onChange={handleChange}
               onKeyDown={handleKeyDown}
               placeholder="Send a message..."
-              className="w-full resize-none bg-gray-800 text-gray-200 rounded-lg px-4 py-3 pr-16 focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-gray-400"
+              className="w-full resize-none bg-gray-800 text-gray-200 rounded-lg px-4 py-3 pr-16 focus:outline-none focus:ring-1 focus:ring-purple-500 placeholder-gray-400"
               minRows={1}
               maxRows={5}
             />
@@ -74,7 +74,7 @@ const ChatInput = ({ modelName, conversationId }: ChatInputProps) => {
               onClick={handleSubmit}
               className={`absolute right-2 bottom-2.5 p-1.5 rounded-lg transition-colors ${
                 input.trim()
-                  ? "bg-blue-600 hover:bg-blue-500 text-white"
+                  ? "bg-purple-600 hover:bg-purple-500 text-white"
                   : "bg-gray-700 text-gray-400 cursor-not-allowed"
               }`}
               disabled={isDisabled}
