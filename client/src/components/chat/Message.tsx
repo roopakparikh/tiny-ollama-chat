@@ -1,28 +1,40 @@
-import { useState, lazy, Suspense } from "react";
-import { ChevronRight } from "lucide-react";
+import { useState, useEffect, lazy, Suspense } from "react";
+import { ChevronRight, Copy, Check } from "lucide-react";
 import { MessageType } from "../../lib/types";
-import { PrismLight as SyntaxHighlighter } from "react-syntax-highlighter";
-import vscDarkPlus from "react-syntax-highlighter/dist/esm/styles/prism/vsc-dark-plus";
 import remarkGfm from "remark-gfm";
 
-// Import only needed languages
-import typescript from "react-syntax-highlighter/dist/esm/languages/prism/typescript";
-import javascript from "react-syntax-highlighter/dist/esm/languages/prism/javascript";
-import jsx from "react-syntax-highlighter/dist/esm/languages/prism/jsx";
-import bash from "react-syntax-highlighter/dist/esm/languages/prism/bash";
-import json from "react-syntax-highlighter/dist/esm/languages/prism/json";
-import python from "react-syntax-highlighter/dist/esm/languages/prism/python";
-
-// Register languages
-SyntaxHighlighter.registerLanguage("typescript", typescript);
-SyntaxHighlighter.registerLanguage("javascript", javascript);
-SyntaxHighlighter.registerLanguage("jsx", jsx);
-SyntaxHighlighter.registerLanguage("bash", bash);
-SyntaxHighlighter.registerLanguage("json", json);
-SyntaxHighlighter.registerLanguage("python", python);
-
-// Lazy load ReactMarkdown
+// Lazy load ReactMarkdown for better initial load performance
 const ReactMarkdown = lazy(() => import("react-markdown"));
+
+// Import highlight.js (smaller alternative to react-syntax-highlighter)
+import hljs from "highlight.js/lib/core";
+// Only import the languages we need
+import javascript from "highlight.js/lib/languages/javascript";
+import typescript from "highlight.js/lib/languages/typescript";
+import python from "highlight.js/lib/languages/python";
+import bash from "highlight.js/lib/languages/bash";
+import json from "highlight.js/lib/languages/json";
+import xml from "highlight.js/lib/languages/xml"; // For HTML
+import markdown from "highlight.js/lib/languages/markdown";
+import go from "highlight.js/lib/languages/go";
+import csharp from "highlight.js/lib/languages/csharp";
+
+// Register only the languages we need
+hljs.registerLanguage("javascript", javascript);
+hljs.registerLanguage("typescript", typescript);
+hljs.registerLanguage("python", python);
+hljs.registerLanguage("bash", bash);
+hljs.registerLanguage("json", json);
+hljs.registerLanguage("xml", xml);
+hljs.registerLanguage("html", xml); // HTML uses the XML highlighter
+hljs.registerLanguage("markdown", markdown);
+hljs.registerLanguage("md", markdown);
+hljs.registerLanguage("go", go);
+hljs.registerLanguage("csharp", csharp);
+hljs.registerLanguage("cs", csharp);
+
+// Import only the styles we need (vs-dark theme is similar to vsc-dark-plus)
+import "highlight.js/styles/atom-one-dark.css";
 
 interface CodeProps {
   node?: any;
@@ -32,13 +44,62 @@ interface CodeProps {
 }
 
 const CodeComponent = ({ inline, className, children }: CodeProps) => {
+  const [copied, setCopied] = useState(false);
+  const codeString = String(children).replace(/\n$/, "");
   const match = /language-(\w+)/.exec(className || "");
-  return !inline && match ? (
-    <SyntaxHighlighter style={vscDarkPlus} language={match[1]} PreTag="div">
-      {String(children).replace(/\n$/, "")}
-    </SyntaxHighlighter>
-  ) : (
-    <code className={className}>{children}</code>
+  const language = match ? match[1] : "";
+  
+  useEffect(() => {
+    // Reset copied state after 2 seconds
+    if (copied) {
+      const timer = setTimeout(() => setCopied(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [copied]);
+
+  // Handle the copy action
+  const handleCopy = () => {
+    navigator.clipboard.writeText(codeString);
+    setCopied(true);
+  };
+
+  if (inline) {
+    return <code className={className}>{children}</code>;
+  }
+
+  // For code blocks, use highlight.js
+  let highlightedCode = "";
+  try {
+    // Check if the language is registered
+    if (language && hljs.getLanguage(language)) {
+      highlightedCode = hljs.highlight(codeString, { language }).value;
+    } else {
+      // Fallback to bash for unknown languages
+      highlightedCode = hljs.highlight(codeString, { language: 'bash' }).value;
+    }
+  } catch (error) {
+    // If any error occurs, fallback to bash
+    console.log(`Highlight.js error: ${error}`);
+    highlightedCode = hljs.highlight(codeString, { language: 'bash' }).value;
+  }
+
+  return (
+    <div className="relative group">
+      <pre className="bg-gray-800 rounded p-3 overflow-x-auto">
+        <code
+          className={`language-${language}`}
+          dangerouslySetInnerHTML={{ __html: highlightedCode }}
+        />
+      </pre>
+      <button
+        onClick={handleCopy}
+        className="absolute top-2 right-2 p-1.5 bg-gray-700 hover:bg-gray-600 rounded text-gray-300 
+                  opacity-0 group-hover:opacity-100 transition-opacity"
+        aria-label="Copy code"
+      >
+        {copied ? <Check size={16} /> : <Copy size={16} />}
+      </button>
+    </div>
   );
 };
 

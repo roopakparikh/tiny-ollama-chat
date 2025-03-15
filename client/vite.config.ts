@@ -30,7 +30,7 @@ export default defineConfig({
           "vendor-markdown": [
             "react-markdown",
             "remark-gfm",
-            "react-syntax-highlighter",
+            "highlight.js",
           ],
         },
       },
