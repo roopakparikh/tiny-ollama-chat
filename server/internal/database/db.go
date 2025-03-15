@@ -2,6 +2,10 @@ package database
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+
+	"ollama-tiny-chat/server/internal/config"
 
 	"github.com/glebarez/sqlite"
 	"github.com/google/uuid"
@@ -12,7 +16,19 @@ var db *gorm.DB
 
 func InitDB() error {
 	var err error
-	db, err = gorm.Open(sqlite.Open("chat.db"), &gorm.Config{})
+
+	// Get database path from config
+	dbPath := config.Get().DBPath
+
+	// Ensure database directory exists
+	dbDir := filepath.Dir(dbPath)
+	if dbDir != "." {
+		if err := os.MkdirAll(dbDir, 0755); err != nil {
+			return fmt.Errorf("failed to create database directory: %w", err)
+		}
+	}
+
+	db, err = gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
 	if err != nil {
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}

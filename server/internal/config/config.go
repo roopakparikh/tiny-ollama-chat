@@ -21,12 +21,16 @@ type Config struct {
 
 	// Ollama configuration
 	OllamaURL string
+
+	// Database configuration
+	DBPath string
 }
 
 // Default configuration values
 const (
 	DefaultServerPort = 8080
 	DefaultOllamaURL  = "http://localhost:11434"
+	DefaultDBPath     = "chat.db"
 )
 
 var (
@@ -40,6 +44,7 @@ func Get() *Config {
 		instance = &Config{
 			ServerPort: DefaultServerPort,
 			OllamaURL:  DefaultOllamaURL,
+			DBPath:     DefaultDBPath,
 		}
 	})
 	return instance
@@ -65,6 +70,7 @@ func ParseFlags() {
 	// Define command line flags
 	serverPort := flag.Int("port", DefaultServerPort, "Port for the server to listen on")
 	ollamaURL := flag.String("ollama-url", DefaultOllamaURL, "URL for the Ollama API")
+	dbPath := flag.String("db-path", DefaultDBPath, "Path to the SQLite database file")
 
 	// Parse flags
 	flag.Parse()
@@ -72,6 +78,7 @@ func ParseFlags() {
 	// Apply parsed values
 	cfg.ServerPort = *serverPort
 	cfg.OllamaURL = *ollamaURL
+	cfg.DBPath = *dbPath
 
 	// Validate and normalize the URL
 	if !strings.HasPrefix(cfg.OllamaURL, "http://") && !strings.HasPrefix(cfg.OllamaURL, "https://") {
@@ -134,7 +141,8 @@ func GetServerAddress() string {
 // String returns a string representation of the configuration
 func String() string {
 	cfg := Get()
-	return fmt.Sprintf("Server port: %s, Ollama URL: %s", 
+	return fmt.Sprintf("Server port: %s, Ollama URL: %s, DB Path: %s", 
 		color.YellowString("%d", cfg.ServerPort), 
-		color.YellowString("%s", cfg.OllamaURL))
+		color.YellowString("%s", cfg.OllamaURL),
+		color.YellowString("%s", cfg.DBPath))
 }
