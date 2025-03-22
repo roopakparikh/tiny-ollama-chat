@@ -4,6 +4,7 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
+  base: './', // This changes the base URL to be relative to index.html
   build: {
     rollupOptions: {
       output: {

@@ -1,11 +1,14 @@
 # Stage 1: Build the client
-FROM node:20-alpine AS client-builder
+FROM node:21-alpine AS client-builder
 
 # Set working directory for client build
 WORKDIR /build/client
 
 # Copy client package.json and package-lock.json
 COPY client/package*.json ./
+
+# Update npm to the latest version
+RUN npm install -g npm@latest
 
 # Install client dependencies
 RUN npm install
