@@ -1,4 +1,5 @@
 # 🤖 Tiny Ollama Chat
+[![Build and Publish Docker Image](https://github.com/roopakparikh/tiny-ollama-chat/actions/workflows/deploy.yaml/badge.svg)](https://github.com/roopakparikh/tiny-ollama-chat/actions/workflows/deploy.yaml)
 
 A lightweight and efficient UI for interacting with Ollama models locally. This application provides a simple yet powerful interface for chatting with AI models through Ollama.
 
