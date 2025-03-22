@@ -34,7 +34,7 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ dockerhub.CR_PAT }}
+          password: ${{ secrets.CR_PAT }}
 
       - name: Extract metadata for Docker
         id: meta
