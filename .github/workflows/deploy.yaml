@@ -12,8 +12,6 @@ env:
 
 jobs:
   build-and-push:
-    environment:
-      name: dockerhub
     runs-on: ubuntu-latest
     permissions:
       contents: read
