@@ -6,8 +6,14 @@ export default defineConfig({
   plugins: [react()],
   base: './', // This changes the base URL to be relative to index.html
   build: {
+    // Ensure assets use relative paths
+    assetsDir: 'assets',
     rollupOptions: {
       output: {
+        // Use relative paths for chunks
+        chunkFileNames: 'assets/js/[name]-[hash].js',
+        entryFileNames: 'assets/js/[name]-[hash].js',
+        assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
         manualChunks: {
           // Core React
           "vendor-react": ["react", "react-dom"],

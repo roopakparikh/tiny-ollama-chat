@@ -1,11 +1,11 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route } from "react-router-dom";
 import ChatPage from "./pages/Chat";
 import { Toaster } from "react-hot-toast";
 import WebSocketProvider from "./providers/WebSocketProvider";
 
 const App = () => {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <WebSocketProvider>
         <Toaster position="top-right" />
         <Routes>
@@ -13,7 +13,7 @@ const App = () => {
           <Route path="/chat/:id" element={<ChatPage />} />
         </Routes>
       </WebSocketProvider>
-    </BrowserRouter>
+    </HashRouter>
   );
 };
 

@@ -79,9 +79,12 @@ class WebSocketService {
       // Determine protocol based on page protocol or forceSecure option
       const isSecure = forceSecure || window.location.protocol === "https:";
       const protocol = isSecure ? "wss:" : "ws:";
-
+      
+      // Handle base URL when app is served from a subdirectory
+      const baseUrl = window.location.pathname.replace(/\/[^/]*$/, '');
+      
       // Construct URL from current location
-      this.url = `${protocol}//${window.location.host}${path}`;
+      this.url = `${protocol}//${window.location.host}${baseUrl}${path}`;
     }
 
     console.log(`WebSocket connecting to: ${this.url}`);
