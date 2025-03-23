@@ -60,7 +60,7 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
       console.log("Initial data fetching");
       // await new Promise((resolve) => setTimeout(resolve, 5000));
       const [conversations, models] = await Promise.all([
-        apiFetch(SERVER_ENDPOINTS.conversatios),
+        apiFetch(SERVER_ENDPOINTS.conversations),
         apiFetch(SERVER_ENDPOINTS.models),
       ]);
 
@@ -104,7 +104,7 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
       }
 
       const conversationWithMessages: ConversationType = await apiFetch(
-        `${SERVER_ENDPOINTS.conversatios}/${id}`
+        `${SERVER_ENDPOINTS.conversations}/${id}`
       );
 
       set((state) => ({
@@ -334,7 +334,7 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
     set({ error: null });
 
     try {
-      await apiFetch(`${SERVER_ENDPOINTS.conversatios}/${id}`, {
+      await apiFetch(`${SERVER_ENDPOINTS.conversations}/${id}`, {
         method: "DELETE",
       });
 

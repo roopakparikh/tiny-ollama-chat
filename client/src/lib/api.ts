@@ -1,7 +1,7 @@
-const API_BASE_URL = "";
+const API_BASE_URL = ".";
 
 export const SERVER_ENDPOINTS = {
-  conversatios: `${API_BASE_URL}/api/conversations`,
+  conversations: `${API_BASE_URL}/api/conversations`,
   models: `${API_BASE_URL}/api/models`,
 };
 
